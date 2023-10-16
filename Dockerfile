@@ -1,17 +1,15 @@
-FROM amazon/aws-cli:2.10.0
+FROM amazon/aws-cli:latest
 
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG PLATFORM="linux_64bit"
-ARG PACKER_VERSION="1.8.5"
+ARG PACKER_VERSION="1.9.4"
 
 VOLUME ["/work"]
 
 WORKDIR /work
 
-RUN yum -y install openssh-server openssh-clients yum-utils gcc make zlib1g-dev wget curl tar python3 unzip genisoimage && \
-    rm -rf /usr/bin/python && \
-    ln -s /usr/bin/python2 /usr/bin/python
+RUN yum -y update && yum -y install openssh-server openssh-clients yum-utils gcc make zlib1g-dev wget curl tar unzip genisoimage
 
 RUN if [[ "$TARGETPLATFORM" == "linux/arm64" ]]; then PLATFORM="linux_arm64"; fi; \
     curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/$PLATFORM/session-manager-plugin.rpm" -o "session-manager-plugin.rpm" && \
@@ -20,10 +18,14 @@ RUN if [[ "$TARGETPLATFORM" == "linux/arm64" ]]; then PLATFORM="linux_arm64"; fi
     yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo && \
     yum clean all
 
-RUN wget https://bootstrap.pypa.io/pip/get-pip.py && \
+RUN amazon-linux-extras enable python3.8 && \
+    yum clean metadata && \
+    yum install -y python38 && \
     rm -rf /usr/bin/python && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    python get-pip.py  && \
+    ln -s /usr/bin/python3 /usr/bin/python
+
+RUN wget https://bootstrap.pypa.io/pip/get-pip.py && \
+    /usr/bin/python3.8 get-pip.py  && \
     rm get-pip.py && \
     pip3 install --no-cache-dir ansible paramiko hvac
 

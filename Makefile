@@ -1,4 +1,4 @@
-IMAGE_NAME ?= dnxsolutions/packer:latest
+IMAGE_NAME ?= docker.sdlocal.net/sysadmin/packer:latest
 
 build:
 	docker build -t $(IMAGE_NAME) .
